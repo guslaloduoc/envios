@@ -9,6 +9,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+// --- Añade estos imports para HATEOAS ---
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+// Importa el controlador de publicaciones si vas a enlazar a sus métodos
+import com.envios.envios.controller.PublicacionController;
+// Importa los métodos estáticos para facilitar la construcción de enlaces
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 @RestController
 public class ComentarioController {
 
@@ -31,11 +40,28 @@ public class ComentarioController {
 
     // Endpoint GET anidado: Obtener todos los comentarios de una Publicacion
     // GET /api/publicaciones/{publicacionId}/comentarios
-    @GetMapping("/api/publicaciones/{publicacionId}/comentarios")
-    public List<ComentarioResponseDto> getComentariosByPublicacionId(@PathVariable Long publicacionId) {
-        return comentarioService.getComentariosByPublicacionId(publicacionId);
-    }
-
+   // Endpoint GET anidado: Obtener todos los comentarios de una Publicacion (CON HATEOAS)
+// GET /api/publicaciones/{publicacionId}/comentarios
+@GetMapping("/api/publicaciones/{publicacionId}/comentarios")
+// Retornamos ResponseEntity<List<...>> para tener más control sobre la respuesta HTTP
+public ResponseEntity < List < ComentarioResponseDto >> getComentariosByPublicacionId(@PathVariable Long publicacionId) {
+	// 1. Obtener la lista de DTOs desde el servicio
+	List < ComentarioResponseDto > comentarios = comentarioService.getComentariosByPublicacionId(publicacionId);
+	// 2. Iterar sobre cada DTO en la lista y añadirle enlaces
+	for(ComentarioResponseDto comentarioDto: comentarios) {
+		Long comentarioId = comentarioDto.getId();
+		// Añadir un enlace "self" a cada comentario individual (GET /api/comentarios/{comentarioId})
+		Link selfLink = linkTo(methodOn(ComentarioController.class).getComentarioById(comentarioId)).withSelfRel();
+		comentarioDto.add(selfLink);
+		// Añadir un enlace a la publicación padre (GET /api/publicaciones/{publicacionId})
+		Link publicacionLink = linkTo(methodOn(PublicacionController.class).getPublicacionById(publicacionId)).withRel("publicacion");
+		comentarioDto.add(publicacionLink);
+	}
+	// Nota: Para colecciones (listas), también se pueden añadir enlaces a la colección misma (ej. link a "crear comentario").
+	// Esto se haría envolviendo la lista en CollectionModel. Por ahora, añadimos enlaces solo a los ítems individuales.
+	// 3. Retornar la lista modificada dentro de ResponseEntity
+	return ResponseEntity.ok(comentarios);
+}
     // Endpoint GET plano: Obtener un comentario por su propio ID
     // GET /api/comentarios/{id}
     @GetMapping("/api/comentarios/{id}")

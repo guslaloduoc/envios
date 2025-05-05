@@ -6,10 +6,12 @@ import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
 
+import org.springframework.hateoas.RepresentationModel;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ComentarioResponseDto {
+public class ComentarioResponseDto  extends RepresentationModel<ComentarioResponseDto> {
 
     private Long id; // ID del comentario
     private String contenido;
