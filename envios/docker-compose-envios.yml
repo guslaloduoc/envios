@@ -1,0 +1,21 @@
+version: '3'
+services:
+  app:
+    image: guslaloduoc/envios-app:latest 
+      - "8080:8080"
+    environment:
+      # Variables de entorno para la conexión a tu base de datos Oracle Cloud
+      - SPRING_DATASOURCE_URL=jdbc:oracle:thin:@fs1_high?TNS_ADMIN=/app/wallet 
+      - SPRING_DATASOURCE_USERNAME=admin 
+      - SPRING_DATASOURCE_PASSWORD=Duoc@.,2025a 
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=oracle.jdbc.driver.OracleDriver
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=none # Mantenemos 'none' o puedes usar 'update' si es necesario
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.OracleDialect
+      - SPRING_JPA_SHOW_SQL=true
+      - TNS_ADMIN=/app/wallet 
+    networks:
+      - default # Conecta el servicio a la red por defecto
+
+networks:
+  default:
+    driver: bridge # Define una red bridge por defecto
